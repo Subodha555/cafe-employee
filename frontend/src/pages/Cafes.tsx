@@ -13,6 +13,8 @@ import DialogActions from "@mui/material/DialogActions";
 import Dialog from "@mui/material/Dialog";
 
 import EditDelete from "../components/EditDelete";
+import GridHeader from "../components/GridHeader";
+import TwoRowGrid from "../components/TwoRowGrid";
 import { RootState, Cafe } from "../utils/types";
 import {CellClickedEvent, ColDef} from "ag-grid-community";
 
@@ -38,6 +40,7 @@ const Cafes = () => {
 
     const [rowData, setRowData] = useState<Cafe[]>([]);
     const [dialog, setDialog] = useState<DialogType>({ open: false, data: { cafeId: "" } });
+    const [columnDefs, setColumnDefs] = useState<ColDef<Cafe>[]>([]);
 
     const onCellClicked = (event: CellClickedEvent<Cafe, any>) => {
         navigate(`/employees`, { state: { cafeId: event.data?.cafeId, cafeName: event.data?.name } });
@@ -51,13 +54,19 @@ const Cafes = () => {
         navigate(`editCafe`, { state: data });
     };
 
-    const columnDefs: ColDef<Cafe>[] = [
-        { field: 'logo', headerName: "", cellRenderer: CustomImageComponent, flex: 1 },
+    const normalScreenColumnDef: ColDef<Cafe>[] = [
+        { field: 'logo', headerName: "", cellRenderer: CustomImageComponent, flex: 1},
         { field: 'name', flex: 2 },
         { field: 'description', flex: 2 },
         { field: 'employeeCount', headerName: 'Employees', flex: 1, cellClass: 'clickable-cell text-right', headerClass: 'right-align-header', onCellClicked: onCellClicked },
         { field: 'location', flex: 2 },
         { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete }, flex: 1 }
+    ];
+
+    const smallScreenColumnDef: ColDef<Cafe>[] = [
+        { field: 'name', headerComponent: GridHeader, headerComponentParams: {top: "Name", bottom: "Description"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "name", bottom: "description"}, flex: 2, rowSpan: ()=> 2, autoHeight: true },
+        { field: 'employeeCount', headerComponent: GridHeader, headerComponentParams: {top: "Employees", bottom: "Location"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "employeeCount", bottom: "location"}, headerName: 'Employees', flex: 2, cellClass: 'clickable-cell', headerClass: 'right-align-header', onCellClicked: onCellClicked },
+        { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete } , rowSpan: ()=> 2, autoHeight: true, width: 85}
     ];
 
     const handleClose = useCallback(() => {
@@ -67,8 +76,28 @@ const Cafes = () => {
         });
     }, [dialog]);
 
+    const onResize = (width: number) => {
+        if (width < 808) {
+            setColumnDefs(smallScreenColumnDef);
+        } else {
+            setColumnDefs(normalScreenColumnDef);
+        }
+    };
+
     useEffect(() => {
         dispatch(getCafesFetch(""));
+        onResize(window.innerWidth);
+
+        const handleWindowResize = (e: UIEvent) => {
+            const target = e.target as Window;
+            onResize(target.innerWidth)
+        };
+
+        window.addEventListener("resize", handleWindowResize);
+
+        return () => {
+            window.removeEventListener("resize", handleWindowResize);
+        }
     }, [dispatch]);
 
     useEffect(() => {

@@ -11,8 +11,8 @@ type Props = {
 const EditDelete = (props: Props) => {
     return (
         <>
-            <EditIcon color="primary" sx={{marginRight: "10px"}} onClick={() => props.editAction(props.data)}/>
-            <DeleteIcon color="error" onClick={() => props.deleteAction(props.data)}/>
+            <EditIcon color="primary" fontSize="small" sx={{marginRight: "10px"}} onClick={() => props.editAction(props.data)}/>
+            <DeleteIcon color="error" fontSize="small" onClick={() => props.deleteAction(props.data)}/>
         </>
     );
 };

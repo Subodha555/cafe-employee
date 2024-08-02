@@ -11,6 +11,8 @@ import DialogActions from "@mui/material/DialogActions";
 import {AgGridReact} from "ag-grid-react";
 
 import EditDelete from "../components/EditDelete";
+import GridHeader from "../components/GridHeader";
+import TwoRowGrid from "../components/TwoRowGrid";
 
 import {getEmployeesFetch, deleteEmployeeFetch} from "../store/redux/reducers/employee";
 import {Employee, RootState} from "../utils/types";
@@ -37,18 +39,26 @@ const Cafes = () => {
         navigate(`editEmployee`, {state: data});
     };
 
-    const columnDefs: ColDef<Employee>[] = [
+    const normalScreenColumnDef: ColDef<Employee>[] = [
         {field: 'employeeId', headerName: 'Employee Id', flex: 1,},
         {field: 'name', flex: 1},
         {field: 'email', headerName: 'Email Aaddress', flex: 1},
-        {field: 'phone', headerName: 'Phone number', flex: 1},
-        {field: 'daysWorked', headerName: 'Days worked in the café', flex: 1, cellClass: 'text-right', headerClass: 'right-align-header', valueFormatter: (data) => data.value !== null ? data.value : "--"},
-        {field: 'cafeDetails.name', headerName: 'Café name', flex: 1, valueFormatter: (data) => data.value || "--"},
+        {field: 'phone', headerName: 'Phone Number', flex: 1},
+        {field: 'daysWorked', headerName: 'Days Worked', flex: 1, cellClass: 'text-right', headerClass: 'right-align-header', valueFormatter: (data) => data.value !== null ? data.value : "--"},
+        {field: 'cafeDetails.name', headerName: 'Café Name', flex: 1, valueFormatter: (data) => data.value || "--"},
         {headerName: "", cellRenderer: EditDelete, cellRendererParams: {editAction: onClickEdit, deleteAction: onClickDelete}, flex:1, cellClass: "clickable-cell"}
     ];
 
+    const smallScreenColumnDef: ColDef<Employee>[] = [
+        { field: 'employeeId', headerComponent: GridHeader, headerComponentParams: {top: "Employee Id", bottom: "Name"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "employeeId", bottom: "name"}, flex: 2, rowSpan: ()=> 2, autoHeight: true },
+        { field: 'email', headerComponent: GridHeader, headerComponentParams: {top: "Email", bottom: "Phone"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "email", bottom: "phone"}, flex: 2 },
+        { field: 'daysWorked', headerComponent: GridHeader, headerComponentParams: {top: "Days Worked", bottom: "Café Name"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "daysWorked", bottom: "cafeDetails.name"}, flex: 2 },
+        { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete } , rowSpan: ()=> 2, autoHeight: true, width: 85}
+    ];
+
     const [rowData, setRowData] = useState<Employee[]>([]);
-    const [dialog, setDialog] = useState<DialogType>({open: false, data: {employeeId: ""}})
+    const [dialog, setDialog] = useState<DialogType>({open: false, data: {employeeId: ""}});
+    const [columnDefs, setColumnDefs] = useState<ColDef<Employee>[]>([]);
 
     const handleClose = useCallback(() => {
         setDialog({
@@ -56,6 +66,29 @@ const Cafes = () => {
             open: false
         });
     }, [dialog]);
+
+    const onResize = (width: number) => {
+        if (width < 888) {
+            setColumnDefs(smallScreenColumnDef);
+        } else {
+            setColumnDefs(normalScreenColumnDef);
+        }
+    };
+
+    useEffect(() => {
+        onResize(window.innerWidth);
+
+        const handleWindowResize = (e: UIEvent) => {
+            const target = e.target as Window;
+            onResize(target.innerWidth)
+        };
+
+        window.addEventListener("resize", handleWindowResize);
+
+        return () => {
+            window.removeEventListener("resize", handleWindowResize);
+        }
+    }, []);
 
     useEffect(()=> {
         dispatch(getEmployeesFetch({cafeId: location.state?.cafeId}));
