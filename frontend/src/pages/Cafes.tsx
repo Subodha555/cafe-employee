@@ -1,22 +1,21 @@
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
 import { Button, CircularProgress, TextField } from "@mui/material";
-import { AgGridReact } from "ag-grid-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { getCafesFetch, deleteCafeFetch } from "../store/redux/reducers/cafe";
-import { useNavigate } from "react-router-dom";
 
+import { AgGridReact } from "ag-grid-react";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import Dialog from "@mui/material/Dialog";
+import {CellClickedEvent, ColDef} from "ag-grid-community";
 
 import EditDelete from "../components/EditDelete";
 import GridHeader from "../components/GridHeader";
 import TwoRowGrid from "../components/TwoRowGrid";
 import { RootState, Cafe } from "../utils/types";
-import {CellClickedEvent, ColDef} from "ag-grid-community";
+import { getCafesFetch, deleteCafeFetch } from "../store/redux/reducers/cafe";
 
 type Props = {
     data: {
