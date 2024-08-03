@@ -33,6 +33,7 @@ const Cafes = () => {
 
     const onClickDelete = useCallback(
         (data: Employee) => {
+            console.log("on click delete");
             setDialog({open: true, data: data});
         },
         [],
@@ -107,6 +108,7 @@ const Cafes = () => {
     }, [onResize]);
 
     useEffect(()=> {
+        console.log("1st useeffect");
         dispatch(getEmployeesFetch({cafeId: location.state?.cafeId}));
     }, [dispatch, location.state?.cafeId]);
 
@@ -115,20 +117,22 @@ const Cafes = () => {
     }, [employees]);
 
     useEffect(() => {
-        if (deleteSuccess && dialog.open) {
+        if (deleteSuccess) {
+            console.log("2nd useeffect on delete");
             dispatch(getEmployeesFetch({cafeId: location.state?.cafeId}));
-            handleClose();
         }
-    }, [deleteSuccess, dialog.open, dispatch, handleClose, location.state?.cafeId]);
+    }, [deleteSuccess, dispatch, location.state?.cafeId]);
 
     const resetFilter = () => {
+        console.log("3rd useeffect on resetFilter");
         dispatch(getEmployeesFetch(""));
         location.state = null;
     };
 
     const handleAgree = () => {
         if (dialog.data?.employeeId) {
-            dispatch(deleteEmployeeFetch(dialog.data.employeeId))
+            dispatch(deleteEmployeeFetch(dialog.data.employeeId));
+            handleClose();
         }
     };
 

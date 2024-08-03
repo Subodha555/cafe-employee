@@ -126,11 +126,10 @@ const Cafes = () => {
     }, [cafes]);
 
     useEffect(() => {
-        if (deleteSuccess && dialog.open) {
+        if (deleteSuccess) {
             dispatch(getCafesFetch(""));
-            handleClose();
         }
-    }, [deleteSuccess, dialog.open, dispatch, handleClose]);
+    }, [deleteSuccess, dispatch]);
 
     const onChangeLocation = (event: ChangeEvent<HTMLInputElement>) => {
         dispatch(getCafesFetch({ location: event.target.value }));
@@ -139,6 +138,7 @@ const Cafes = () => {
     const handleAgree = () => {
         if (dialog.data?.cafeId) {
             dispatch(deleteCafeFetch(dialog.data.cafeId));
+            handleClose();
         }
     };
 

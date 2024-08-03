@@ -45,6 +45,9 @@ router.get('/', async (req, res) => {
             },
             { $unwind: { path: "$cafeDetails", preserveNullAndEmptyArrays: true } },
             {
+                $match: cafeId ? { "assignments.cafeId": cafeId } : {}
+            },
+            {
                 $project: {
                     _id: 0,
                     employeeId: 1,
