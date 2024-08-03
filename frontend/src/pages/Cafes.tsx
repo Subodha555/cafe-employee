@@ -9,7 +9,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import Dialog from "@mui/material/Dialog";
-import {CellClickedEvent, ColDef} from "ag-grid-community";
+import { CellClickedEvent, ColDef } from "ag-grid-community";
 
 import EditDelete from "../components/EditDelete";
 import GridHeader from "../components/GridHeader";
@@ -17,15 +17,15 @@ import TwoRowGrid from "../components/TwoRowGrid";
 import { RootState, Cafe } from "../utils/types";
 import { getCafesFetch, deleteCafeFetch } from "../store/redux/reducers/cafe";
 
-type Props = {
+type ImageComponentProps = {
     data: {
         logo: string;
-    }
+    };
 };
 
 type DialogType = { open: boolean; data: { cafeId: string; name?: string; employeeCount?: number } };
 
-const CustomImageComponent = (props: Props) => {
+const CustomImageComponent = (props: ImageComponentProps) => {
     return <img src={props.data.logo} alt="logo" className="object-contain h-full" />;
 };
 
@@ -41,32 +41,51 @@ const Cafes = () => {
     const [dialog, setDialog] = useState<DialogType>({ open: false, data: { cafeId: "" } });
     const [columnDefs, setColumnDefs] = useState<ColDef<Cafe>[]>([]);
 
-    const onCellClicked = (event: CellClickedEvent<Cafe, any>) => {
-        navigate(`/employees`, { state: { cafeId: event.data?.cafeId, cafeName: event.data?.name } });
-    };
+    const onCellClicked = useCallback(
+        (event: CellClickedEvent<Cafe, any>) => {
+            navigate(`/employees`, { state: { cafeId: event.data?.cafeId, cafeName: event.data?.name } });
+        },
+        [navigate],
+    );
 
-    const onClickDelete = (data: Cafe) => {
-        setDialog({ open: true, data: data });
-    };
+    const onClickDelete = useCallback(
+        (data: Cafe) => {
+            setDialog({ open: true, data: data });
+        },
+        [],
+    );
 
-    const onClickEdit = (data: Cafe) => {
-        navigate(`editCafe`, { state: data });
-    };
+    const onClickEdit = useCallback(
+        (data: Cafe) => {
+            navigate(`editCafe`, { state: data });
+        },
+        [navigate],
+    );
 
-    const normalScreenColumnDef: ColDef<Cafe>[] = [
-        { field: 'logo', headerName: "", cellRenderer: CustomImageComponent, flex: 1},
-        { field: 'name', flex: 2 },
-        { field: 'description', flex: 2 },
-        { field: 'employeeCount', headerName: 'Employees', flex: 1, cellClass: 'clickable-cell text-right', headerClass: 'right-align-header', onCellClicked: onCellClicked },
-        { field: 'location', flex: 2 },
-        { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete }, flex: 1 }
-    ];
+    const getNormalScreenColumnDef = useCallback(
+        (): ColDef<Cafe>[] => {
+            return  [
+                { field: 'logo', headerName: "", cellRenderer: CustomImageComponent, flex: 1 },
+                { field: 'name', flex: 2 },
+                { field: 'description', flex: 2 },
+                { field: 'employeeCount', headerName: 'Employees', flex: 1, cellClass: 'clickable-cell text-right', headerClass: 'right-align-header', onCellClicked: onCellClicked },
+                { field: 'location', flex: 2 },
+                { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete }, flex: 1 }
+            ];
+        },
+        [onCellClicked, onClickEdit, onClickDelete],
+    );
 
-    const smallScreenColumnDef: ColDef<Cafe>[] = [
-        { field: 'name', headerComponent: GridHeader, headerComponentParams: {top: "Name", bottom: "Description"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "name", bottom: "description"}, flex: 2, rowSpan: ()=> 2, autoHeight: true },
-        { field: 'employeeCount', headerComponent: GridHeader, headerComponentParams: {top: "Employees", bottom: "Location"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "employeeCount", bottom: "location"}, headerName: 'Employees', flex: 2, cellClass: 'clickable-cell', headerClass: 'right-align-header', onCellClicked: onCellClicked },
-        { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete } , rowSpan: ()=> 2, autoHeight: true, width: 85}
-    ];
+    const getSmalllScreenColumnDef = useCallback(
+        (): ColDef<Cafe>[] => {
+            return  [
+                { field: 'name', headerComponent: GridHeader, headerComponentParams: {top: "Name", bottom: "Description"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "name", bottom: "description"}, flex: 2, rowSpan: ()=> 2, autoHeight: true },
+                { field: 'employeeCount', headerComponent: GridHeader, headerComponentParams: {top: "Employees", bottom: "Location"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "employeeCount", bottom: "location"}, headerName: 'Employees', flex: 2, cellClass: 'clickable-cell', headerClass: 'right-align-header', onCellClicked: onCellClicked },
+                { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete } , rowSpan: ()=> 2, autoHeight: true, width: 85}
+            ];
+        },
+        [onCellClicked, onClickEdit, onClickDelete],
+    );
 
     const handleClose = useCallback(() => {
         setDialog({
@@ -75,13 +94,16 @@ const Cafes = () => {
         });
     }, [dialog]);
 
-    const onResize = (width: number) => {
-        if (width < 808) {
-            setColumnDefs(smallScreenColumnDef);
-        } else {
-            setColumnDefs(normalScreenColumnDef);
-        }
-    };
+    const onResize = useCallback(
+        (width: number) => {
+            if (width < 808) {
+                setColumnDefs(getSmalllScreenColumnDef());
+            } else {
+                setColumnDefs(getNormalScreenColumnDef());
+            }
+        },
+        [getSmalllScreenColumnDef, getNormalScreenColumnDef]
+    );
 
     useEffect(() => {
         dispatch(getCafesFetch(""));
@@ -89,15 +111,15 @@ const Cafes = () => {
 
         const handleWindowResize = (e: UIEvent) => {
             const target = e.target as Window;
-            onResize(target.innerWidth)
+            onResize(target.innerWidth);
         };
 
         window.addEventListener("resize", handleWindowResize);
 
         return () => {
             window.removeEventListener("resize", handleWindowResize);
-        }
-    }, [dispatch]);
+        };
+    }, [dispatch, onResize]);
 
     useEffect(() => {
         setRowData(cafes);

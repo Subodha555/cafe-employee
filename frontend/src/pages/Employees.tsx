@@ -31,30 +31,46 @@ const Cafes = () => {
     const isLoading = useSelector((state: RootState) => state.employees.isLoading);
     const deleteSuccess = useSelector((state: RootState) => state.employees.deleteSuccess);
 
-    const onClickDelete = (data: Employee) => {
-        setDialog({open: true, data: data});
-    };
+    const onClickDelete = useCallback(
+        (data: Employee) => {
+            setDialog({open: true, data: data});
+        },
+        [],
+    );
 
-    const onClickEdit = (data: Employee) => {
-        navigate(`editEmployee`, {state: data});
-    };
+    const onClickEdit = useCallback(
+        (data: Employee) => {
+            navigate(`editEmployee`, {state: data});
+        },
+        [navigate],
+    );
 
-    const normalScreenColumnDef: ColDef<Employee>[] = [
-        {field: 'employeeId', headerName: 'Employee Id', flex: 1,},
-        {field: 'name', flex: 1},
-        {field: 'email', headerName: 'Email Aaddress', flex: 1},
-        {field: 'phone', headerName: 'Phone Number', flex: 1},
-        {field: 'daysWorked', headerName: 'Days Worked', flex: 1, cellClass: 'text-right', headerClass: 'right-align-header', valueFormatter: (data) => data.value !== null ? data.value : "--"},
-        {field: 'cafeDetails.name', headerName: 'Café Name', flex: 1, valueFormatter: (data) => data.value || "--"},
-        {headerName: "", cellRenderer: EditDelete, cellRendererParams: {editAction: onClickEdit, deleteAction: onClickDelete}, flex:1, cellClass: "clickable-cell"}
-    ];
+    const getNormalScreenColumnDef = useCallback(
+        (): ColDef<Employee>[] => {
+            return [
+                {field: 'employeeId', headerName: 'Employee Id', flex: 1,},
+                {field: 'name', flex: 1},
+                {field: 'email', headerName: 'Email Aaddress', flex: 1},
+                {field: 'phone', headerName: 'Phone Number', flex: 1},
+                {field: 'daysWorked', headerName: 'Days Worked', flex: 1, cellClass: 'text-right', headerClass: 'right-align-header', valueFormatter: (data) => data.value !== null ? data.value : "--"},
+                {field: 'cafeDetails.name', headerName: 'Café Name', flex: 1, valueFormatter: (data) => data.value || "--"},
+                {headerName: "", cellRenderer: EditDelete, cellRendererParams: {editAction: onClickEdit, deleteAction: onClickDelete}, flex:1, cellClass: "clickable-cell"}
+            ];
+        },
+        [onClickEdit, onClickDelete],
+    );
 
-    const smallScreenColumnDef: ColDef<Employee>[] = [
-        { field: 'employeeId', headerComponent: GridHeader, headerComponentParams: {top: "Employee Id", bottom: "Name"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "employeeId", bottom: "name"}, flex: 2, rowSpan: ()=> 2, autoHeight: true },
-        { field: 'email', headerComponent: GridHeader, headerComponentParams: {top: "Email", bottom: "Phone"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "email", bottom: "phone"}, flex: 2 },
-        { field: 'daysWorked', headerComponent: GridHeader, headerComponentParams: {top: "Days Worked", bottom: "Café Name"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "daysWorked", bottom: "cafeDetails.name"}, flex: 2 },
-        { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete } , rowSpan: ()=> 2, autoHeight: true, width: 85}
-    ];
+    const getSmallScreenColumnDef = useCallback(
+        (): ColDef<Employee>[] => {
+            return [
+                { field: 'employeeId', headerComponent: GridHeader, headerComponentParams: {top: "Employee Id", bottom: "Name"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "employeeId", bottom: "name"}, flex: 2, rowSpan: ()=> 2, autoHeight: true },
+                { field: 'email', headerComponent: GridHeader, headerComponentParams: {top: "Email", bottom: "Phone"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "email", bottom: "phone"}, flex: 2 },
+                { field: 'daysWorked', headerComponent: GridHeader, headerComponentParams: {top: "Days Worked", bottom: "Café Name"}, cellRenderer: TwoRowGrid, cellRendererParams: {top: "daysWorked", bottom: "cafeDetails.name"}, flex: 2 },
+                { headerName: "", cellRenderer: EditDelete, cellClass: "clickable-cell", cellRendererParams: { editAction: onClickEdit, deleteAction: onClickDelete } , rowSpan: ()=> 2, autoHeight: true, width: 85}
+            ];
+        },
+        [onClickEdit, onClickDelete],
+    );
 
     const [rowData, setRowData] = useState<Employee[]>([]);
     const [dialog, setDialog] = useState<DialogType>({open: false, data: {employeeId: ""}});
@@ -67,13 +83,13 @@ const Cafes = () => {
         });
     }, [dialog]);
 
-    const onResize = (width: number) => {
+    const onResize = useCallback((width: number) => {
         if (width < 888) {
-            setColumnDefs(smallScreenColumnDef);
+            setColumnDefs(getSmallScreenColumnDef());
         } else {
-            setColumnDefs(normalScreenColumnDef);
+            setColumnDefs(getNormalScreenColumnDef());
         }
-    };
+    }, [getSmallScreenColumnDef, getNormalScreenColumnDef]);
 
     useEffect(() => {
         onResize(window.innerWidth);
@@ -88,7 +104,7 @@ const Cafes = () => {
         return () => {
             window.removeEventListener("resize", handleWindowResize);
         }
-    }, []);
+    }, [onResize]);
 
     useEffect(()=> {
         dispatch(getEmployeesFetch({cafeId: location.state?.cafeId}));
